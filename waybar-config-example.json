@@ -1,0 +1,12 @@
+{
+  "custom/touchscreen": {
+    "format": "{}",
+    "return-type": "json",
+    "exec": "/path/to/surface-touch-toggle.sh status",
+    "on-click": "/path/to/surface-touch-toggle.sh toggle; pkill -SIGRTMIN+8 waybar",
+    "signal": 8,
+    "interval": "once",
+    "tooltip": true
+  }
+}
+
