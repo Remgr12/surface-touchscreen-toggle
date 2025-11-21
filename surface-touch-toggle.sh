@@ -1,32 +1,19 @@
 #!/bin/bash
 
-# Surface Touchscreen Toggle Script for Hyprland
-# Usage:
-#   ./surface-touch-toggle.sh toggle  - Toggles the touchscreen state
-#   ./surface-touch-toggle.sh status  - Outputs JSON for Waybar
-
-# Function to detect the touchscreen device name
 get_device_name() {
-    # Try to find a device with "IPTS" (common for Surface) or "Touchscreen"
-    # We use hyprctl devices to list input devices and grep for likely candidates.
-    # We prioritize "IPTS" as it's more specific to Surface.
-    
     DEVICE=$(hyprctl devices -j | jq -r '.mice[] | select(.name | contains("IPTS") or contains("Touchscreen") or contains("touchscreen")) | .name' | head -n 1)
     
-    # If not found in mice (sometimes touchscreens show up there), check tablets/touch
     if [ -z "$DEVICE" ]; then
          DEVICE=$(hyprctl devices -j | jq -r '.tablets[] | select(.name | contains("IPTS") or contains("Touchscreen") or contains("touchscreen")) | .name' | head -n 1)
     fi
     
     if [ -z "$DEVICE" ]; then
-        # Fallback: try to find anything with "touch" in the name from mice/touch/tablets
          DEVICE=$(hyprctl devices -j | jq -r '.touch[] | select(.name | contains("IPTS") or contains("Touchscreen") or contains("touchscreen")) | .name' | head -n 1)
     fi
 
     echo "$DEVICE"
 }
 
-# Function to check current status
 get_status() {
     DEVICE=$1
     if [ -z "$DEVICE" ]; then
@@ -34,16 +21,6 @@ get_status() {
         return
     fi
 
-    # Check if the device is explicitly disabled in hyprctl config
-    # Note: Hyprland doesn't always make it easy to query the *current* enabled state via json if it was toggled via keyword.
-    # We might need to track state via a file or rely on hyprctl getoption.
-    # However, 'device:enabled' is a per-device config.
-    
-    # A more robust way for a toggle script is to maintain a state file, 
-    # because hyprctl might not reflect dynamic keyword changes in 'getoption' easily for specific devices 
-    # without parsing the entire config dump or assuming default is enabled.
-    
-    # Let's assume default is enabled. If we find a lock file or state file saying disabled, it's disabled.
     STATE_FILE="/tmp/surface_touch_disabled"
     
     if [ -f "$STATE_FILE" ]; then
